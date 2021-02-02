@@ -373,7 +373,46 @@ def next_ticket(ticket):
                   ticket.generation+1)
 
 
-def make_ticket_heap(id_list, seed):
+def capped_heap_push(heap, max_size, item):
+    """Push an item onto a min-heap, enforcing a cap on the number of items
+    in the heap. After inserting the item, the largest items over max_size
+    will be removed from the heap.
+
+    Args:
+        heap (list<element>): a min-heap constructed using the heapq module
+        max_size (int): the maximum number of items to keep in the heap
+        item (element): new item to insert
+
+    Returns:
+        a new heap of size no larger than max_size
+
+    Example:
+    >>> heap = []
+    >>> heap = capped_heap_push(heap, 2, 1)
+    >>> list(sorted(heap))
+    [1]
+    >>> heap =capped_heap_push(heap, 2, 2)
+    >>> list(sorted(heap))
+    [1, 2]
+    >>> heap = capped_heap_push(heap, 2, 3)
+    >>> list(sorted(heap))
+    [1, 2]
+    >>> heap = capped_heap_push(heap, 2, 0)
+    >>> list(sorted(heap))
+    [0, 1]
+    """
+    if len(heap) < max_size:
+        heapq.heappush(heap, item)
+        return heap
+    elif item < max(heap):
+        heapq.heappush(heap, item)
+        return heapq.nsmallest(max_size, heap)
+    else:
+        return heap
+
+
+# TODO update docs
+def make_ticket_heap(id_list, max_size, seed):
     """Make a heap containing one ticket for each id in id_list.
 
     Args:
@@ -389,19 +428,18 @@ def make_ticket_heap(id_list, seed):
             and 2i+2.
 
     Example:
-    >>> heap = make_ticket_heap(['dog', 'cat', 'fish', 'goat'], 'xy()134!g2n')
+    >>> heap = make_ticket_heap(['dog', 'cat', 'fish', 'goat'], 3, 'xy()134!g2n')
     >>> for ticket in heap:
     ...     print(ticket)
     Ticket(ticket_number='0.24866413894129579898796850445568128508290132707747976039848637531569373309555', id='cat', generation=1)
     Ticket(ticket_number='0.33886035615681875183111698317327684455682722683976874746986356932751818935066', id='dog', generation=1)
-    Ticket(ticket_number='0.74685932088827950509145941729789143204056041958068799542050396198792954500593', id='fish', generation=1)
     Ticket(ticket_number='0.49599842072022713663423753308080171636735689997237236247068925068573448764387', id='goat', generation=1)
     """
 
     heap = []
     seed_hash = sha256_hex(seed)
     for id in id_list:
-        heapq.heappush(heap, first_ticket(id, seed, seed_hash))
+        heap = capped_heap_push(heap, max_size, first_ticket(id, seed, seed_hash))
     return heap
 
 
@@ -576,7 +614,8 @@ def sampler(id_list,
     assert output in {'id', 'tuple', 'ticket'}
     assert type(digits) is int
     
-    heap = make_ticket_heap(id_list, seed)
+    max_size = drop + 2 * take
+    heap = make_ticket_heap(id_list, max_size, seed)
     count = 0
     while len(heap) > 0:
         ticket = draw_without_replacement(heap)
