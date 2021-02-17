@@ -373,35 +373,42 @@ def next_ticket(ticket):
                   ticket.generation+1)
 
 
-def make_ticket_heap(id_list, seed):
-    """Make a heap containing one ticket for each id in id_list.
+def make_ticket_heap(id_list, max_tickets, seed):
+    """Make a heap containing the smallest max_tickets tickets generated from
+    the ids in id_list.
 
     Args:
         id_list (iterable): a list or iterable with a list of distinct 
             hashable ids
+        max_tickets (int): the maximum number of tickets the heap can contain
         seed (str): a string or any printable python object.
 
     Returns:
-        a list that is a min-heap created by heapq with one ticket per id
-            in id_list.  Ticket numbers are determined by the id and the seed.
-            By the heap property, the ticket_number at position i will be
-            less than or equal to the ticket_numbers at positions 2i+1
-            and 2i+2.
+        a list that is a min-heap created by heapq containing the smallest
+            max_tickets tickets generated from id_list. Ticket numbers are
+            determined by the id and the seed for each id in id_list. The
+            smallest ticket numbers are kept in the heap, and the rest are
+            discarded. By the heap property, the ticket_number at position i will
+            be less than or equal to the ticket_numbers at positions 2i+1 and
+            2i+2.
 
     Example:
-    >>> heap = make_ticket_heap(['dog', 'cat', 'fish', 'goat'], 'xy()134!g2n')
+    >>> heap = make_ticket_heap(['dog', 'cat', 'fish', 'goat'], 3, 'xy()134!g2n')
     >>> for ticket in heap:
     ...     print(ticket)
     Ticket(ticket_number='0.24866413894129579898796850445568128508290132707747976039848637531569373309555', id='cat', generation=1)
     Ticket(ticket_number='0.33886035615681875183111698317327684455682722683976874746986356932751818935066', id='dog', generation=1)
-    Ticket(ticket_number='0.74685932088827950509145941729789143204056041958068799542050396198792954500593', id='fish', generation=1)
     Ticket(ticket_number='0.49599842072022713663423753308080171636735689997237236247068925068573448764387', id='goat', generation=1)
     """
 
-    heap = []
     seed_hash = sha256_hex(seed)
-    for id in id_list:
-        heapq.heappush(heap, first_ticket(id, seed, seed_hash))
+    tickets = (first_ticket(id, seed, seed_hash) for id in id_list)
+    heap = (
+        heapq.nsmallest(max_tickets, tickets)
+        if max_tickets < float('inf')
+        else list(tickets)
+    )
+    heapq.heapify(heap)
     return heap
 
 
@@ -497,8 +504,11 @@ def sampler(id_list,
     Args:
         id_list (iterable): a list or iterable for a finite collection
             of ids.  Each id is typically a string, but may be a tuple
-            or other hashable object.  It is checked that these ids
-            are distinct.
+            or other hashable object. When a list is given, it is checked
+            that these ids are distinct. When an iterator is given, the
+            caller is responsible for ensuring there are no duplicates (in
+            order to avoid the sampler having to load all of the ids into
+            memory at once).
         seed (object): a python object with a string representation
         with_replacement (bool): True if and only if sampling is with
             replacement (defaults to False)
@@ -568,15 +578,23 @@ def sampler(id_list,
         or USAGE_EXAMPLES.md
     """
 
-    assert len(id_list) == len(set(id_list)),\
-        "Input id_list to sampler contains duplicate ids: {}"\
-        .format(duplicates(id_list))
+    if not isinstance(id_list, collections.Iterator):
+        assert len(id_list) == len(set(id_list)),\
+            "Input id_list to sampler contains duplicate ids: {}"\
+            .format(duplicates(id_list))
     assert type(with_replacement) is bool
     output = output.lower()
     assert output in {'id', 'tuple', 'ticket'}
     assert type(digits) is int
     
-    heap = make_ticket_heap(id_list, seed)
+    # Generate the maximum number of tickets we want to populate the initial
+    # heap. When id_list is large, populating the initial ticket heap with a
+    # ticket for every id rapidly grows memory usage. When take is finite, we
+    # only need drop + take tickets in the initial heap to safely accommodate
+    # all possible samplings with replacement.
+    max_tickets = drop + take
+    heap = make_ticket_heap(id_list, max_tickets, seed)
+
     count = 0
     while len(heap) > 0:
         ticket = draw_without_replacement(heap)

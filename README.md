@@ -131,3 +131,9 @@ running time of ``sampler`` is proportional to the length of
 ``id_list`` (to set up the priority queue) plus, if sampling is done
 with replacement, the value of ``drop+take``, where the constant of
 proportionality is about 1 microsecond.  
+
+## Testing
+
+To run the test suite, just run:
+
+    python code/test_consistent_sampler.py
