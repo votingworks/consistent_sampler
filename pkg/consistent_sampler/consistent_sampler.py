@@ -146,7 +146,10 @@ import hashlib
 import heapq
 
 
-Ticket = collections.namedtuple("Ticket", ["ticket_number", "id", "generation"])
+Ticket = collections.namedtuple("Ticket",
+                                ['ticket_number',
+                                 'id',
+                                 'generation'])
 """
 A Ticket is a record referring to one object.
 
@@ -189,9 +192,10 @@ def trim(x, mantissa_display_length=9):
         '0.9991234'
     """
 
-    x0 = x + "0"
-    first_non_9_position = min([i for i in range(2, len(x0)) if x0[i] < "9"])
-    return x[: first_non_9_position + mantissa_display_length]
+    x0 = x+'0'
+    first_non_9_position = \
+        min([i for i in range(2, len(x0)) if x0[i] < '9'])
+    return x[:first_non_9_position + mantissa_display_length]
 
 
 def duplicates(L):
@@ -220,7 +224,7 @@ def duplicates(L):
 
 
 def sha256_hex(hash_input):
-    """Return 64-character hex representation of SHA256 of input.
+    """ Return 64-character hex representation of SHA256 of input.
 
     Args:
         hash_input (obj): a python object having a string representation.
@@ -234,7 +238,7 @@ def sha256_hex(hash_input):
         'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
     """
 
-    return hashlib.sha256(str(hash_input).encode("utf-8")).hexdigest()
+    return hashlib.sha256(str(hash_input).encode('utf-8')).hexdigest()
 
 
 def sha256_uniform(hash_input):
@@ -262,14 +266,14 @@ def sha256_uniform(hash_input):
     """
 
     x_hex = sha256_hex(hash_input)
-    x_int = "{:064d}".format(int(x_hex, 16))
+    x_int = ("{:064d}".format(int(x_hex, 16)))
     x_list = list(x_int)
     x_list.reverse()
     return "0." + "".join(x_list)
 
 
 def first_fraction(id, seed, seed_hash=None):
-    """Return initial pseudo-random fraction for given id and seed.
+    """ Return initial pseudo-random fraction for given id and seed.
 
     Args:
         id (obj): a hashable python object with a string representation
@@ -294,7 +298,7 @@ def first_fraction(id, seed, seed_hash=None):
 
 
 def next_fraction(x):
-    """Return pseudorandom real y in (x, 1) (so y>x).
+    """ Return pseudorandom real y in (x, 1) (so y>x).
 
     Args:
         x (str): An input string of the form "0.ddd...dddd"
@@ -314,15 +318,16 @@ def next_fraction(x):
         '0.642853261655004694691182528114375607701032283189922170593838029306715548381901'
     """
 
-    assert x[:2] == "0."
-    x0 = x + "0"  # in case x mantissa is all 9s
-    first_non_9_position = min([i for i in range(2, len(x0)) if x0[i] < "9"])
-    y = "0."
+    assert x[:2] == '0.'
+    x0 = x+'0'          # in case x mantissa is all 9s
+    first_non_9_position = \
+        min([i for i in range(2, len(x0)) if x0[i] < '9'])
+    y = '0.'
     i = 0
     while y <= x0:
         i = i + 1
         y = x0[:first_non_9_position]
-        y = y + sha256_uniform(x + ":" + str(i))[2:]
+        y = y + sha256_uniform(x + ':' + str(i))[2:]
     return y
 
 
@@ -363,7 +368,9 @@ def next_ticket(ticket):
         Ticket(ticket_number='0.8232357229934205790595761924514048157652891124687533667363938813600770093316', id='AB-130', generation=2)
     """
 
-    return Ticket(next_fraction(ticket.ticket_number), ticket.id, ticket.generation + 1)
+    return Ticket(next_fraction(ticket.ticket_number),
+                  ticket.id,
+                  ticket.generation+1)
 
 
 def make_ticket_heap(id_list, max_tickets, seed):
@@ -371,7 +378,7 @@ def make_ticket_heap(id_list, max_tickets, seed):
     the ids in id_list.
 
     Args:
-        id_list (iterable): a list or iterable with a list of distinct
+        id_list (iterable): a list or iterable with a list of distinct 
             hashable ids
         max_tickets (int): the maximum number of tickets the heap can contain
         seed (str): a string or any printable python object.
@@ -398,7 +405,7 @@ def make_ticket_heap(id_list, max_tickets, seed):
     tickets = (first_ticket(id, seed, seed_hash) for id in id_list)
     heap = (
         heapq.nsmallest(max_tickets, tickets)
-        if max_tickets < float("inf")
+        if max_tickets < float('inf')
         else list(tickets)
     )
     heapq.heapify(heap)
@@ -481,15 +488,14 @@ def draw_with_replacement(heap):
     return ticket
 
 
-def sampler(
-    id_list,
-    seed,
-    with_replacement=False,
-    drop=0,
-    take=float("inf"),
-    output="tuple",
-    digits=9,
-):
+def sampler(id_list,
+            seed,
+            with_replacement=False,
+            drop=0,
+            take=float('inf'),
+            output='tuple',
+            digits=9,
+            ):
     """Return generator for a sample of the given list of ids.
 
     The sample is determined in a pseudo-random order controlled by
@@ -513,15 +519,15 @@ def sampler(
             If drop is 0, then take is an upper bound on the sample size.
             (defaults to infinity)
         output (str): one of {'id', 'tuple', 'ticket'}
-            Specifies whether each invocation of the returned generator
+            Specifies whether each invocation of the returned generator 
             yields:
                 an id, such as
                     'AB-130'
                 a tuple (triple), such as
                     ('0.235789114', 'AB-130', 1)
                 or a Ticket, such as
-                    Ticket(ticket_number='0.235789114',
-                           id='AB-130',
+                    Ticket(ticket_number='0.235789114', 
+                           id='AB-130', 
                            generation=1)
         digits (int): the number of significant digits to return
             in ticket numbers. (More precisely, this is the number of
@@ -556,7 +562,7 @@ def sampler(
         Raises AssertionError if there are duplicate ids in id_list
 
     Examples:
-        >>> list(sampler(['A#2', 'B#7', 'C#1', 'D#4'],
+        >>> list(sampler(['A#2', 'B#7', 'C#1', 'D#4'], 
         ...              with_replacement=True, take=8, seed=314159,
         ...              output='id'))
         ['D#4', 'C#1', 'C#1', 'B#7', 'A#2', 'C#1', 'D#4', 'B#7']
@@ -573,16 +579,14 @@ def sampler(
     """
 
     if not isinstance(id_list, collections.Iterator):
-        assert len(id_list) == len(
-            set(id_list)
-        ), "Input id_list to sampler contains duplicate ids: {}".format(
-            duplicates(id_list)
-        )
+        assert len(id_list) == len(set(id_list)),\
+            "Input id_list to sampler contains duplicate ids: {}"\
+            .format(duplicates(id_list))
     assert type(with_replacement) is bool
     output = output.lower()
-    assert output in {"id", "tuple", "ticket"}
+    assert output in {'id', 'tuple', 'ticket'}
     assert type(digits) is int
-
+    
     # Generate the maximum number of tickets we want to populate the initial
     # heap. When id_list is large, populating the initial ticket heap with a
     # ticket for every id rapidly grows memory usage. When take is finite, we
@@ -600,21 +604,18 @@ def sampler(
         if drop < count <= drop + take:
             ticket_list = list(ticket)
             ticket_list[0] = trim(ticket_list[0], digits)
-            if output == "id":
+            if output == 'id':
                 yield ticket.id
-            elif output == "tuple":
+            elif output == 'tuple':
                 yield tuple(ticket_list)
             else:
-                yield Ticket(
-                    ticket_number=ticket_list[0],
-                    id=ticket_list[1],
-                    generation=ticket_list[2],
-                )
-        elif count > drop + take:
+                yield Ticket(ticket_number=ticket_list[0],
+                             id=ticket_list[1],
+                             generation=ticket_list[2])
+        elif count > drop+take:
             return
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import doctest
-
     doctest.testmod()

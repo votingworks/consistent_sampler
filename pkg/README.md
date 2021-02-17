@@ -108,11 +108,13 @@ order.
 
 ## Usage
 Further documentation and examples are:
+
     1. in the code `consistent_sampler.py`
     2. obtainable by running the program ``demo_consistent_sampler.py``
     3. described in the file USAGE_EXAMPLES.md
-    4. in the file ``docs/consistent_sampling_with_replacement.pdf``
-       (This file will soon appear on arXiv as well.)
+    4. in the paper ``docs/consistent_sampling_with_replacement.pdf``
+       This paper is also on arXiv [https://arxiv.org/abs/1808.10016].
+
 
 This code has been packaged and uploaded to PyPI.  From python3 you can say
 
@@ -125,7 +127,13 @@ as in the above examples.
 
 The bulk of the work is in computing the SHA256 hash function, which
 takes about one microsecond per call on a typical laptop.  Thus, the
-running time of ``sampler`` is proportional to the length if
+running time of ``sampler`` is proportional to the length of
 ``id_list`` (to set up the priority queue) plus, if sampling is done
 with replacement, the value of ``drop+take``, where the constant of
 proportionality is about 1 microsecond.  
+
+## Testing
+
+To run the test suite, just run:
+
+    python code/test_consistent_sampler.py
