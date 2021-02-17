@@ -590,9 +590,9 @@ def sampler(id_list,
     # Generate the maximum number of tickets we want to populate the initial
     # heap. When id_list is large, populating the initial ticket heap with a
     # ticket for every id rapidly grows memory usage. When take is finite, we
-    # only need 2x the take in tickets to safely accommodate all possible
-    # samplings with replacement.
-    max_tickets = drop + 2 * take
+    # only need drop + take tickets in the initial heap to safely accommodate
+    # all possible samplings with replacement.
+    max_tickets = drop + take
     heap = make_ticket_heap(id_list, max_tickets, seed)
 
     count = 0
