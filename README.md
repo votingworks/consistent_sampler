@@ -136,4 +136,4 @@ proportionality is about 1 microsecond.
 
 To run the test suite, just run:
 
-    python code/test_consistent_sampler.py
+    python consistent_sampler/test_consistent_sampler.py
