@@ -11,7 +11,7 @@ setuptools.setup(
     description="Package for consistent sampling with or without replacement.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/ron-rivest/consistent_sampler",
+    url="https://github.com/votingworks/consistent_sampler",
     # packages=setuptools.find_packages(),
     packages=['consistent_sampler'],
     license='MIT License',
