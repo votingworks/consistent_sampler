@@ -5,7 +5,7 @@ from consistent_sampler import sampler
 
 
 def ids(n):
-    id_list = [i for i in range(n)]
+    id_list = [i for i in range(int(n))]
     random.shuffle(id_list)
     return id_list
 
