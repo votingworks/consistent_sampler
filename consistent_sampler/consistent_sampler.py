@@ -578,7 +578,7 @@ def sampler(id_list,
         or USAGE_EXAMPLES.md
     """
 
-    if not isinstance(id_list, collections.Iterator):
+    if not isinstance(id_list, collections.abc.Iterator):
         assert len(id_list) == len(set(id_list)),\
             "Input id_list to sampler contains duplicate ids: {}"\
             .format(duplicates(id_list))
